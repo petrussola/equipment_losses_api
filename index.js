@@ -1,5 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const helmet = require("helmet");
+
 require("dotenv").config();
 const { router } = require("./routes/index");
 
@@ -10,6 +12,7 @@ const config = {
 };
 
 const app = express();
+app.use(helmet());
 app.use(express.json());
 
 app.use("/", router);
