@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
+const { limiter } = require("./config/rate-limit");
 
 require("dotenv").config();
 const { router } = require("./routes/index");
@@ -14,6 +15,7 @@ const config = {
 const app = express();
 app.use(helmet());
 app.use(express.json());
+app.use(limiter);
 
 app.use("/", router);
 
