@@ -4,13 +4,8 @@ const helmet = require("helmet");
 const { limiter } = require("./config/rate-limit");
 
 require("dotenv").config();
+const { config } = require("./config/index");
 const { router } = require("./routes/index");
-
-const config = {
-  username: process.env.MONGODB_USERNAME,
-  password: process.env.MONGODB_PASSWORD,
-  dbName: process.env.MONGODB_DB_NAME,
-};
 
 const app = express();
 app.use(helmet());

@@ -1,5 +1,6 @@
 const express = require("express");
 const { Machine } = require("../models/models");
+const { parseFile } = require("../middleware/parse-file");
 
 const router = express.Router();
 
@@ -7,7 +8,7 @@ router.get("/", (req, res) => {
   res.status(200).json({ succesful: true });
 });
 
-router.post("/add", (req, res) => {
+router.post("/create-machine", [parseFile], (req, res) => {
   const machine = new Machine(req.body);
   machine
     .save()
