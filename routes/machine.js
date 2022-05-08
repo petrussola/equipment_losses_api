@@ -5,6 +5,7 @@ const { parseCsv } = require("../middleware/parse-csv");
 const { cloudinaryUpload } = require("../middleware/cloudinary");
 const csv = require("@fast-csv/parse");
 const streamifier = require("streamifier");
+const { cloudinary } = require("../config/cloudinary");
 
 const machineRouter = express.Router();
 
@@ -63,21 +64,28 @@ machineRouter.post("/csv-upload", [parseCsv], (req, res) => {
   const { buffer } = req.file;
 
   const machines = [];
+
   streamifier
     .createReadStream(buffer)
     .pipe(csv.parse({ headers: true, ignoreEmpty: true }))
     .on("error", (error) => console.log(error))
     .on("data", (row) => {
-      console.log(row);
+      console.log(row.imageUrl);
       machines.push(row);
     })
     .on("end", async (rowCount) => {
-      console.log(`Parsed ${rowCount} rows`);
       try {
-        const data = await Machine.create(machines);
+        const machinePromises = machines.map(async (machine) => {
+          const data = await cloudinary.uploader.upload(machine.imageUrl, {
+            folder: "machines",
+          });
+          return { ...machine, imageUrl: data.secure_url };
+        });
+        const machinesCloudinary = await Promise.all(machinePromises);
+        const data = await Machine.create(machinesCloudinary);
         res.status(200).json({ successful: true, rowsParsed: rowCount, data });
       } catch (error) {
-        console.log(error);
+        res.status(400).json({ successful: false, error });
       }
     });
 });
