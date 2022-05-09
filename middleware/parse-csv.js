@@ -1,5 +1,22 @@
-const multer = require("multer");
+const csv = require("@fast-csv/parse");
+const streamifier = require("streamifier");
 
-const parseCsv = multer().single("machine-csv");
+async function parseCsv(req, res, next) {
+  const { buffer } = req.file;
 
-module.exports = {parseCsv}
+  const machines = [];
+
+  streamifier
+    .createReadStream(buffer)
+    .pipe(csv.parse({ headers: true, ignoreEmpty: true }))
+    .on("error", (error) => console.log(error))
+    .on("data", (row) => {
+      machines.push(row);
+    })
+    .on("end", (rowCount) => {
+      req.csv = { machines, rowCount };
+      next();
+    });
+}
+
+module.exports = { parseCsv };

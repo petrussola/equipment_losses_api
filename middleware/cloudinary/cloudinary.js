@@ -1,4 +1,4 @@
-const { cloudinary } = require("../config/cloudinary");
+const { cloudinary } = require("../../config/cloudinary");
 const DatauriParser = require("datauri/parser");
 
 const parser = new DatauriParser();
