@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const MachineSchema = new Schema({
-  country: { type: String, required: true, enum: ["ukraine", "russia"] },
+  country: { type: String, required: true, enum: ["ua", "ru"] },
   category: {
     type: String,
     required: true,
