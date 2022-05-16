@@ -1,5 +1,6 @@
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+const fs = require("node:fs");
 
 let documentDom;
 
@@ -9,7 +10,8 @@ JSDOM.fromURL(
 )
   .then((dom) => {
     documentDom = dom;
-    traverseNode(getAllByTag("h3")[0]);
+    const results = traverseNode(getAllByTag("h3")[0]);
+    fs.writeFileSync("./parse-content/data.json", JSON.stringify(results));
   })
   .catch((error) => {
     console.log(error);
@@ -19,60 +21,12 @@ function getAllByTag(tag) {
   return documentDom.window.document.getElementsByTagName(tag);
 }
 
-// function traverseNode(element) {
-//   // if node is null, return
-//   if (!element || element.textContent.includes("Special thanks to")) {
-//     return;
-//   }
-//   // if node has no children, print the text and move to next sibling
-//   if (element.childElementCount === 0) {
-//     if (element.textContent[0] === "(") {
-//       const content = element.textContent.split("(")[1].split(")")[0];
-//       const [id, state] = content.split(",");
-//       let link;
-//       if (element.tagName === "A") {
-//         link = element.getAttribute("href");
-//       }
-//       console.log(`id: ${id}, state: ${state}, link: ${link}`);
-//     }
-//     // else {
-//     //   if (element.textContent.length > 0) {
-//     //     console.log(element.textContent);
-//     //   }
-//     // }
-//     // find next Element to parse
-//     let nextElement = element;
-//     while (!nextElement.nextElementSibling) {
-//       nextElement = nextElement.parentNode;
-//     }
-//     return traverseNode(nextElement.nextElementSibling);
-//   }
-//   // if node has children, traverse children
-//   if (element.childElementCount > 0) {
-//     if (element.textContent.length > 4) {
-//       const initialElement = element.textContent.trim().split(" ");
-//       if (isNaN(parseInt(initialElement)) && element.textContent.includes("(")) {
-//         console.log("######################################");
-//         const content = element.textContent.trim().split("(");
-//         const category = content[0].trim();
-//         const total = content[1].split(",")[0].trim();
-//         console.log(`Category: ${category}, total: ${total}`);
-//         console.log("######################################");
-//       } else {
-//         console.log("======================================");
-//         const contentArray = element.textContent.trim().split(" ");
-//         const total = contentArray[0];
-//         const model = contentArray.slice(1).join(" ");
-//         console.log(`Total: ${total}, model: ${model.split(":")[0]}\n`);
-//       }
-//     }
-//     return traverseNode(element.children[0]);
-//   }
-// }
-
 function traverseNode(element) {
   let nextElement = element;
-  const data = {}
+  let data = [];
+  let parseId = 1;
+  let mostRecentCategory = "abc";
+  let mostRecentModel = "abc";
   while (
     nextElement &&
     !nextElement.textContent.includes("Special thanks to")
@@ -86,18 +40,22 @@ function traverseNode(element) {
           isNaN(parseInt(initialElement)) &&
           nextElement.textContent.includes("(")
         ) {
-          console.log("######################################");
+          // console.log("######################################");
           const content = nextElement.textContent.trim().split("(");
           const category = content[0].trim();
           const total = content[1].split(",")[0].trim();
-          console.log(`Category: ${category}, total: ${total}`);
-          console.log("######################################");
+          // console.log(`Category: ${category}, total: ${total}`);
+          mostRecentCategory = category;
+          // console.log(category);
+          // console.log("######################################");
         } else {
-          console.log("======================================");
+          // console.log("======================================");
           const contentArray = nextElement.textContent.trim().split(" ");
           const total = contentArray[0];
           const model = contentArray.slice(1).join(" ");
-          console.log(`Total: ${total}, model: ${model.split(":")[0]}\n`);
+          mostRecentModel = model.split(":")[0];
+          // console.log(model.split(":")[0]);
+          // console.log(`Total: ${total}, model: ${model.split(":")[0]}\n`);
         }
       }
       nextElement = nextElement.children[0];
@@ -110,10 +68,26 @@ function traverseNode(element) {
         if (nextElement.tagName === "A") {
           link = nextElement.getAttribute("href");
         }
-        console.log(`id: ${id}, state: ${state}, link: ${link}`);
+        // console.log(data)
+        // console.log(mostRecentCategory)
+        // console.log(mostRecentModel)
+        data = [
+          ...data,
+          {
+            id: parseId.trim(),
+            oryxId: id,
+            country: "ru",
+            category: mostRecentCategory.trim(),
+            model: mostRecentModel.trim(),
+            event: state.trim(),
+            imageUrl: link.trim(),
+          },
+        ];
+        parseId++;
+        // console.log(`id: ${id}, state: ${state}, link: ${link}`);
       } else {
         if (nextElement.textContent.length > 0) {
-          console.log(nextElement.textContent);
+          // console.log(nextElement.textContent);
         }
       }
       nextElement = nextElement.nextElementSibling;
@@ -126,4 +100,6 @@ function traverseNode(element) {
       nextElement = el.parentNode.nextElementSibling;
     }
   }
+  console.log("done!");
+  return data;
 }
