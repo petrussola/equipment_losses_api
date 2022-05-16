@@ -37,14 +37,14 @@ function traverseNode(element) {
       if (nextElement.textContent.length > 4) {
         const initialElement = nextElement.textContent.trim().split(" ");
         if (
-          isNaN(parseInt(initialElement)) &&
-          nextElement.textContent.includes("(")
+          // isNaN(parseInt(initialElement)) &&
+          nextElement.textContent.includes("(") &&
+          nextElement.tagName === "H3"
         ) {
-          // console.log("######################################");
           const content = nextElement.textContent.trim().split("(");
           const category = content[0].trim();
           const total = content[1].split(",")[0].trim();
-          // console.log(`Category: ${category}, total: ${total}`);
+          console.log(`Category: ${category}, total: ${total}`);
           mostRecentCategory = category;
           // console.log(category);
           // console.log("######################################");
@@ -61,9 +61,21 @@ function traverseNode(element) {
       nextElement = nextElement.children[0];
       // otherwise move to next sibling
     } else if (nextElement.nextElementSibling) {
+      // some category titles don't have
+      if (
+        nextElement.textContent.includes("(") &&
+        nextElement.tagName === "H3"
+      ) {
+        const content = nextElement.textContent.trim().split("(");
+        const category = content[0].trim();
+        const total = content[1].split(",")[0].trim();
+        console.log(`Category: ${category}, total: ${total}`);
+        mostRecentCategory = category;
+      }
       if (nextElement.textContent[0] === "(") {
         const content = nextElement.textContent.split("(")[1].split(")")[0];
         const [id, state] = content.split(",");
+        const event = state?.trim();
         let link;
         if (nextElement.tagName === "A") {
           link = nextElement.getAttribute("href");
@@ -74,13 +86,13 @@ function traverseNode(element) {
         data = [
           ...data,
           {
-            id: parseId.trim(),
+            id: parseId,
             oryxId: id,
             country: "ru",
-            category: mostRecentCategory.trim(),
-            model: mostRecentModel.trim(),
-            event: state.trim(),
-            imageUrl: link.trim(),
+            category: conversionCategory[mostRecentCategory],
+            model: mostRecentModel,
+            event,
+            imageUrl: link,
           },
         ];
         parseId++;
@@ -103,3 +115,30 @@ function traverseNode(element) {
   console.log("done!");
   return data;
 }
+
+const conversionCategory = {
+  Tanks: "tank",
+  "Armoured Fighting Vehicles": "armoured_fighting_vehicle",
+  "Infantry Fighting Vehicles": "infrantry_fighting_vehicle",
+  "Armoured Personnel Carriers": "armoured_personnel_carrier",
+  "Mine-Resistant Ambush Protected": "mrap_vehicle",
+  "Infantry Mobility Vehicles": "infantry_mobility_vehicle",
+  "Command Posts And Communications Stations":
+    "command_posts_communications_station",
+  "Engineering Vehicles And Equipment": "engineering_vehicle_and_equipment",
+  "Towed Artillery": "towed_artillery",
+  "Heavy Mortars": "heavy_mortar",
+  "Self-Propelled Artillery": "self_propelled_artillery",
+  "Multiple Rocket Launchers": "multiple_rocket_launcher",
+  "Anti-Aircraft Guns": "anti_aircraft_gun",
+  "Self-Propelled Anti-Aircraft Guns": "self_propelled_anti_aircraft_gun",
+  "Surface-To-Air Missile Systems": "surface_to_air_missile_system",
+  Radars: "radar_and_communication_equipment",
+  "Jammers And Deception Systems": "jammer_and_deception_system",
+  Aircraft: "aircraft",
+  Helicopters: "helicopter",
+  "Unmanned Aerial Vehicles": "uav",
+  "Naval Ships": "naval_ship",
+  "Logistics Trains": "logistics_train",
+  "Trucks, Vehicles and Jeeps": "truck_vehicle__jeep",
+};
