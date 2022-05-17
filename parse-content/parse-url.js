@@ -74,27 +74,103 @@ function traverseNode(element) {
       }
       if (nextElement.textContent[0] === "(") {
         const content = nextElement.textContent.split("(")[1].split(")")[0];
-        const [id, state] = content.split(",");
-        const event = state?.trim();
-        let link;
-        if (nextElement.tagName === "A") {
-          link = nextElement.getAttribute("href");
+        let [id, state, possibleState] = content.split(",");
+        if (possibleState) {
+          const [id2, id3] = state.split(" and ");
+          const event = possibleState?.trim();
+          let link;
+          if (nextElement.tagName === "A") {
+            link = nextElement.getAttribute("href");
+          }
+          data = [
+            ...data,
+            {
+              id: parseId,
+              oryxId: id,
+              country: "ru",
+              category: conversionCategory[mostRecentCategory],
+              model: mostRecentModel,
+              event,
+              imageUrl: link,
+            },
+          ];
+          parseId++;
+          data = [
+            ...data,
+            {
+              id: parseId,
+              oryxId: id2,
+              country: "ru",
+              category: conversionCategory[mostRecentCategory],
+              model: mostRecentModel,
+              event,
+              imageUrl: link,
+            },
+          ];
+          parseId++;
+          data = [
+            ...data,
+            {
+              id: parseId,
+              oryxId: id3,
+              country: "ru",
+              category: conversionCategory[mostRecentCategory],
+              model: mostRecentModel,
+              event,
+              imageUrl: link,
+            },
+          ];
+        } else {
+          const event = state?.trim();
+          let link;
+          if (nextElement.tagName === "A") {
+            link = nextElement.getAttribute("href");
+          }
+          if (id.includes("and")) {
+            const [id1, id2] = id.split(" and ");
+            data = [
+              ...data,
+              {
+                id: parseId,
+                oryxId: id1,
+                country: "ru",
+                category: conversionCategory[mostRecentCategory],
+                model: mostRecentModel,
+                event,
+                imageUrl: link,
+              },
+            ];
+            parseId++;
+            data = [
+              ...data,
+              {
+                id: parseId,
+                oryxId: id2,
+                country: "ru",
+                category: conversionCategory[mostRecentCategory],
+                model: mostRecentModel,
+                event,
+                imageUrl: link,
+              },
+            ];
+          } else {
+            // console.log(data)
+            // console.log(mostRecentCategory)
+            // console.log(mostRecentModel)
+            data = [
+              ...data,
+              {
+                id: parseId,
+                oryxId: id,
+                country: "ru",
+                category: conversionCategory[mostRecentCategory],
+                model: mostRecentModel,
+                event,
+                imageUrl: link,
+              },
+            ];
+          }
         }
-        // console.log(data)
-        // console.log(mostRecentCategory)
-        // console.log(mostRecentModel)
-        data = [
-          ...data,
-          {
-            id: parseId,
-            oryxId: id,
-            country: "ru",
-            category: conversionCategory[mostRecentCategory],
-            model: mostRecentModel,
-            event,
-            imageUrl: link,
-          },
-        ];
         parseId++;
         // console.log(`id: ${id}, state: ${state}, link: ${link}`);
       } else {
