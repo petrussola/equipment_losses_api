@@ -37,16 +37,6 @@ const MachineSchema = new Schema({
     {
       type: String,
       required: true,
-      enum: [
-        "destroyed",
-        "captured",
-        "abandoned",
-        "destroyed by Bayraktar TB2",
-        "destroyed by Orion",
-        "destroyed by artillery",
-        "damaged",
-        "sunk",
-      ],
     },
   ],
   eventDate: {

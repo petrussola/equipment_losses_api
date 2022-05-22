@@ -2,11 +2,16 @@ const express = require("express");
 const { Machine } = require("../models/models");
 const { parseFile } = require("../middleware/parse-file");
 const { multerCsv } = require("../middleware/multer-csv");
-const { cloudinaryUpload } = require("../middleware/cloudinary/cloudinary");
+const {
+  cloudinaryUpload,
+  cloudinaryDelete,
+} = require("../middleware/cloudinary/cloudinary");
 const { parseCsv } = require("../middleware/parse-csv");
 const {
   uploadImagesCsvCloudinary,
 } = require("../middleware/cloudinary/cloudinary-csv");
+const parsedData = require("../parse-content/sample.json");
+const { uploadParsedData } = require("../parse-content/upload-parsed-data");
 
 const machineRouter = express.Router();
 
@@ -23,6 +28,15 @@ machineRouter.get("/all", async (req, res) => {
     const query = Machine.find({});
     const data = await query.exec();
     res.status(200).json({ successful: true, count: data.length, data });
+  } catch (error) {
+    res.status(400).json({ successful: false, error });
+  }
+});
+
+machineRouter.get("/category/all", async (req, res) => {
+  try {
+    const data = await Machine.aggregate().sortByCount("category");
+    res.status(200).json({ successful: true, data });
   } catch (error) {
     res.status(400).json({ successful: false, error });
   }
@@ -66,6 +80,7 @@ machineRouter.get("/country/:country", async (req, res) => {
 // POST //
 //////////
 
+// create individual machine
 machineRouter.post("/create", [parseFile, cloudinaryUpload], (req, res) => {
   const { imageUrl } = req;
   const machine = new Machine({ ...req.body, imageUrl });
@@ -79,6 +94,7 @@ machineRouter.post("/create", [parseFile, cloudinaryUpload], (req, res) => {
     });
 });
 
+// upload images and machines from csv file
 machineRouter.post(
   "/csv-upload",
   [multerCsv, parseCsv, uploadImagesCsvCloudinary],
@@ -94,6 +110,16 @@ machineRouter.post(
   }
 );
 
+// parses data.json file and uploads image to cloudinary and model to mongodb
+machineRouter.post("/trigger-parse-data-upload", async (req, res) => {
+  try {
+    const data = await uploadParsedData(parsedData);
+    res.status(200).json({ successful: true, data });
+  } catch (error) {
+    res.status(400).json({ successful: false, error });
+  }
+});
+
 /////////
 // PUT //
 /////////
@@ -106,6 +132,20 @@ machineRouter.put("/:id", async (req, res) => {
       returnDocument: "after",
     });
     res.status(200).json({ successful: true, data: updatedMachine });
+  } catch (error) {
+    res.status(400).json({ successful: false, error });
+  }
+});
+
+////////////
+// DELETE //
+////////////
+
+machineRouter.delete("/delete-all", async (req, res) => {
+  try {
+    const images = await cloudinaryDelete("machines");
+    const data = await Machine.deleteMany();
+    res.status(200).json({ successful: true, data, images });
   } catch (error) {
     res.status(400).json({ successful: false, error });
   }

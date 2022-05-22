@@ -8,7 +8,11 @@ async function cloudinaryUpload(req, res, next) {
   const test = parser.format(".png", buffer);
   const uri = `data:${test.mimetype};base64,${test.base64}`;
   try {
-    const data = await cloudinary.uploader.upload(uri, { folder: "machines" });
+    const data = await cloudinary.uploader.upload(uri, {
+      folder: "machines",
+      tags: ["oryx"],
+    });
+    const res = await cloudinary.uploader.add_tag("oryx", data.public_id);
     req.imageUrl = data.secure_url;
     next();
   } catch (error) {
@@ -16,4 +20,8 @@ async function cloudinaryUpload(req, res, next) {
   }
 }
 
-module.exports = { cloudinaryUpload };
+async function cloudinaryDelete(folderName) {
+  return await cloudinary.api.delete_resources_by_tag("oryx");
+}
+
+module.exports = { cloudinaryUpload, cloudinaryDelete };

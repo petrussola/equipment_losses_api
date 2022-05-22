@@ -74,14 +74,27 @@ function traverseNode(element) {
       }
       if (nextElement.textContent[0] === "(") {
         const content = nextElement.textContent.split("(")[1].split(")")[0];
-        let [id, state, possibleState] = content.split(",");
-        if (possibleState) {
-          const [id2, id3] = state.split(" and ");
-          const event = possibleState?.trim();
-          let link;
-          if (nextElement.tagName === "A") {
-            link = nextElement.getAttribute("href");
-          }
+
+        // when multiple ids in same entry i.e. (50, 51, 52 and 53, destroyed)
+        const divideCommaIndex = content.lastIndexOf(",");
+        const ids = content.slice(0, divideCommaIndex);
+        const state = content.slice(divideCommaIndex + 2);
+
+        let firstIdArray;
+        let lastId;
+        let idsArray;
+        if (ids.includes("and")) {
+          [firstIdArray, lastId] = ids.split(" and ");
+          idsArray = [...firstIdArray.split(", "), lastId];
+        } else {
+          idsArray = [ids];
+        }
+        const event = state.trim();
+        let link;
+        if (nextElement.tagName === "A") {
+          link = nextElement.getAttribute("href");
+        }
+        idsArray.forEach((id) => {
           data = [
             ...data,
             {
@@ -95,84 +108,7 @@ function traverseNode(element) {
             },
           ];
           parseId++;
-          data = [
-            ...data,
-            {
-              id: parseId,
-              oryxId: id2,
-              country: "ru",
-              category: conversionCategory[mostRecentCategory],
-              model: mostRecentModel,
-              event,
-              imageUrl: link,
-            },
-          ];
-          parseId++;
-          data = [
-            ...data,
-            {
-              id: parseId,
-              oryxId: id3,
-              country: "ru",
-              category: conversionCategory[mostRecentCategory],
-              model: mostRecentModel,
-              event,
-              imageUrl: link,
-            },
-          ];
-        } else {
-          const event = state?.trim();
-          let link;
-          if (nextElement.tagName === "A") {
-            link = nextElement.getAttribute("href");
-          }
-          if (id.includes("and")) {
-            const [id1, id2] = id.split(" and ");
-            data = [
-              ...data,
-              {
-                id: parseId,
-                oryxId: id1,
-                country: "ru",
-                category: conversionCategory[mostRecentCategory],
-                model: mostRecentModel,
-                event,
-                imageUrl: link,
-              },
-            ];
-            parseId++;
-            data = [
-              ...data,
-              {
-                id: parseId,
-                oryxId: id2,
-                country: "ru",
-                category: conversionCategory[mostRecentCategory],
-                model: mostRecentModel,
-                event,
-                imageUrl: link,
-              },
-            ];
-          } else {
-            // console.log(data)
-            // console.log(mostRecentCategory)
-            // console.log(mostRecentModel)
-            data = [
-              ...data,
-              {
-                id: parseId,
-                oryxId: id,
-                country: "ru",
-                category: conversionCategory[mostRecentCategory],
-                model: mostRecentModel,
-                event,
-                imageUrl: link,
-              },
-            ];
-          }
-        }
-        parseId++;
-        // console.log(`id: ${id}, state: ${state}, link: ${link}`);
+        });
       } else {
         if (nextElement.textContent.length > 0) {
           // console.log(nextElement.textContent);
